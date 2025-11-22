@@ -44,6 +44,8 @@ body {
     background-color: #D3D3D3;
     /* Light Gray for Idle */
     /* No shadow for flat minimalist look */
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
     transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
     cursor: pointer;
 }
