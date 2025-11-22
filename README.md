@@ -20,6 +20,9 @@
 
 このアプリはPWA (Progressive Web App) として設計されており、ホーム画面に追加することでネイティブアプリのように動作します。
 
+**Web版URL:** [https://torusk.github.io/zen-pomodoro/](https://torusk.github.io/zen-pomodoro/)
+（※GitHub Pagesの設定が必要です）
+
 ### iPhone (iOS) の場合
 1. Safariでこのページを開きます。
 2. 画面下部の「共有」アイコン（四角から矢印が出ているアイコン）をタップします。
