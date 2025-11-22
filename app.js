@@ -27,7 +27,7 @@ function loadState() {
     if (savedState && savedEndTime) {
         const now = Date.now();
         const target = parseInt(savedEndTime, 10);
-        
+
         if (target > now) {
             // Timer still running
             currentState = savedState;
@@ -46,14 +46,14 @@ function loadState() {
 function handleExpiredState(lastState, lastEndTime, now) {
     // Calculate how much time has passed since the last timer ended
     let timeSinceEnd = now - lastEndTime;
-    
+
     // We need to simulate the loop to find the current state
     // Cycle: Focus (25) -> Break (5) -> Focus (25) ...
-    
+
     // However, for simplicity and user experience, if the user opens the app 
     // and the timer has long finished, maybe just reset or show the next state?
     // Let's try to be smart.
-    
+
     if (lastState === STATES.FOCUS) {
         // Focus finished. Did Break also finish?
         if (timeSinceEnd < DURATIONS.BREAK) {
@@ -72,10 +72,10 @@ function handleExpiredState(lastState, lastEndTime, now) {
     } else if (lastState === STATES.BREAK) {
         // Break finished. Back to Focus?
         if (timeSinceEnd < DURATIONS.FOCUS) {
-             currentState = STATES.FOCUS;
-             endTime = lastEndTime + DURATIONS.FOCUS;
-             startTimerLoop();
-             updateUI();
+            currentState = STATES.FOCUS;
+            endTime = lastEndTime + DURATIONS.FOCUS;
+            startTimerLoop();
+            updateUI();
         } else {
             resetToIdle();
         }
@@ -113,7 +113,9 @@ function startFocus() {
     saveState();
     updateUI();
     startTimerLoop();
+    startTimerLoop();
     vibrate([100, 50, 100]); // Double pulse for start
+    playNotificationSound(440, 'sine'); // A4 note
 }
 
 function startBreak() {
@@ -122,7 +124,9 @@ function startBreak() {
     saveState();
     updateUI();
     startTimerLoop();
+    startTimerLoop();
     vibrate([500]); // Long pulse for break
+    playNotificationSound(880, 'sine'); // A5 note
 }
 
 function resetToIdle() {
@@ -153,13 +157,39 @@ function vibrate(pattern) {
     if ('vibrate' in navigator) {
         navigator.vibrate(pattern);
     }
+    if ('vibrate' in navigator) {
+        navigator.vibrate(pattern);
+    }
+}
+
+// Sound
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playNotificationSound(freq, type) {
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.5);
 }
 
 // Interaction
 let pressStartTime = 0;
 
 circle.addEventListener('mousedown', handlePressStart);
-circle.addEventListener('touchstart', handlePressStart, {passive: false});
+circle.addEventListener('touchstart', handlePressStart, { passive: false });
 
 circle.addEventListener('mouseup', handlePressEnd);
 circle.addEventListener('touchend', handlePressEnd);
@@ -169,9 +199,9 @@ function handlePressStart(e) {
     // e.preventDefault(); // Prevent default to avoid ghost clicks, but might block scroll? App is fixed, so ok.
     // Actually, passive: false on touchstart allows preventDefault.
     if (e.cancelable) e.preventDefault();
-    
+
     pressStartTime = Date.now();
-    
+
     longPressTimer = setTimeout(() => {
         resetToIdle();
     }, LONG_PRESS_DURATION);
@@ -179,9 +209,9 @@ function handlePressStart(e) {
 
 function handlePressEnd(e) {
     if (longPressTimer) clearTimeout(longPressTimer);
-    
+
     const pressDuration = Date.now() - pressStartTime;
-    
+
     if (pressDuration < 500) {
         // Short tap
         if (currentState === STATES.IDLE) {
